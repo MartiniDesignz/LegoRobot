@@ -7,11 +7,12 @@ This is the code for the lego robot project.  This project includes a library th
 Based on list of coordinates that it is provided it will calculate a list of actions so that the robot passes through each one of those points.  Once the list of actions is created, the robot will then carry out those actions.  While it is moving it tracks its position by using a gyro and assuming that linear movement is consistent.  Once the list of actions has been carried out,the robot will then go to its origin point (0,0), based on its current position.
 
 <br>
+<br>
 
 ---
 
-## For the Ev3 library
-Copyright (c) 2015 Ralph Hempel <rhempel@hempeldesigngroup.com>
-Copyright (c) 2015 Anton Vanhoucke <antonvh@gmail.com>
-Copyright (c) 2015 Denis Demidov <dennis.demidov@gmail.com>
-Copyright (c) 2015 Eric Pascual <eric@pobot.org>
+### For the Ev3 library
+Copyright (c) 2015 Ralph Hempel <rhempel@hempeldesigngroup.com><br>
+Copyright (c) 2015 Anton Vanhoucke <antonvh@gmail.com><br>
+Copyright (c) 2015 Denis Demidov <dennis.demidov@gmail.com><br>
+Copyright (c) 2015 Eric Pascual <eric@pobot.org><br>
