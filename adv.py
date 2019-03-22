@@ -25,6 +25,58 @@ class action():
     turn=0
     d=0
 
+#LEDS----------------------------------------------
+
+    # Description:
+    #   Basic functions to controls the leds
+    #
+def loff():#Turn all LEDs off
+    led.all_off() 
+
+def Llr():#left led red
+    led.set_color('LEFT', (1, 0)) #Bright Red
+
+def Llg():#left led green
+    led.set_color('LEFT', (0, 1)) #Bright Green
+
+def Rlr():#Right led red
+    led.set_color('RIGHT', (1, 0)) #Bright Red
+
+def Rlg():#Right led green
+    led.set_color('RIGHT', (0, 1)) #Bright Green
+
+    # Effects
+def flash(t, s):#Flash LEDs for t (time in sec) at s(flashes per second)
+    t/=s
+    i=0
+    while i<t:
+        i+=1
+        if i%2==0:
+            Llr()
+            Rlg()
+        else:
+            Llg()
+            Rlr()
+        sleep(s)
+
+
+def fade(t):#Fade from red to green to red
+    i=0
+    while i<t:
+        i+=1
+        p=0
+        while p<t*10:
+            p+=1
+            if i%2==0:
+                led.set_color('LEFT', (p/100, 1-p/100)) #Bright Red
+                led.set_color('RIGHT', (p/100, 1-p/100)) #Bright Red
+            else:
+                led.set_color('LEFT', (1-p/100, p/100)) #Bright Red
+                led.set_color('RIGHT', (1-p/100, p/100)) #Bright Red
+            sleep(.01)
+
+
+
 #Sensors----------------------------------------------------------------
     # Description:
     #   Functions for testing and checking sensors
