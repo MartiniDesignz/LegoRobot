@@ -169,14 +169,14 @@ def track(oa, d=40, s=50):
     size=0
     angAr=[]
     while mA.state[0]=='running':
-        angAr.append(g.angle)
+        angAr.append((g.angle*-1))
         size+=1
     i=0
     while i<size:
         dc=d/size
         ang=(angAr[i]-oa+90)%360
         pos.y+=m.sin(ang*m.pi/180)*dc
-        pos.x+=m.cos(ang*m.pi/180)*dc*-1
+        pos.x+=m.cos(ang*m.pi/180)*dc
         dt+=dc
         i+=1
     print("Expected: ", d, "| Actual: ", dt)
@@ -193,18 +193,19 @@ def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and
     size=0
     angAr=[]
     while i<inc or p>100:#fix ac
+        ang=g.angle*-1
         #print("Current Angle: ", g.angle, "; Target Angle: ",oa)
-        if oa+ac<g.angle:                                                #turn the robot 
-            tP.on_for_degrees(s, -s, inc, brake=False, block=True)
-        elif oa-ac>g.angle:
+        if oa+ac<ang:                                                #turn the robot 
             tP.on_for_degrees(-s, s, inc, brake=False, block=True)
+        elif oa-ac>ang:
+            tP.on_for_degrees(s, -s, inc, brake=False, block=True)
         else:
             print(d)
             tP.on_for_degrees(s, s, toDeg(d/inc), brake=True, block=False)
             i+=1
             while mA.state[0]=='running':
                 #ult.append(u.distance_centimeters)
-                angAr.append(g.angle)
+                angAr.append(g.angle*-1)
                 size+=1
         p+=1
     i=0
@@ -226,7 +227,7 @@ def final(oa):#Take the robot to its exact orgin (0, 0)
     d=m.sqrt((pos.y)**2+(pos.x)**2)
     desAng=0
     if ((pos.y==0) and (pos.x==0)):
-            desAng=oa-g.angle
+            desAng=oa-(g.angle*-1)
             d=0
     elif pos.y==0:
         if pos.x<0:
@@ -252,7 +253,7 @@ def final(oa):#Take the robot to its exact orgin (0, 0)
             desAng=tAng
     print("Desired Angle: ", desAng)
     calc=0
-    calc=(g.angle-oa+90)%360
+    calc=((g.angle*-1)-oa+90)%360
     print("(",pos.x, ", ", pos.y,")")
     print(" Turn: ", desAng-calc, "Move: ", d)
     if (desAng-calc) != 0:
@@ -261,12 +262,11 @@ def final(oa):#Take the robot to its exact orgin (0, 0)
         track(oa, d)
     
 
-
 def point(oa, c):#Take the robot to its exact orgin
     d=m.sqrt((pos.y-c.y)**2+(pos.x-c.x)**2)
     desAng=0
     if ((pos.y==c.y) and (pos.x==c.x)):
-            desAng=oa-g.angle
+            desAng=oa-(g.angle*-1)
             d=0
     elif pos.y==c.y:
         if pos.x<c.x:
@@ -292,7 +292,7 @@ def point(oa, c):#Take the robot to its exact orgin
             desAng=tAng
     print("Desired Angle: ", desAng)
     calc=0
-    calc=(g.angle-oa+90)%360
+    calc=((g.angle*-1)-oa+90)%360
     print("(",pos.x, ", ", pos.y,")")
     print(" Turn: ", desAng-calc, "Move: ", d)
     if (desAng-calc) != 0:
@@ -351,10 +351,10 @@ def task2():
     #coords for every thing after initial position
     # x=[0,-30,30, 0]
     # y=[40,40,40, 0]
-    x=[ 30,  0,-30, 0]
+    x=[ -30,  0,30, 0]
     y=[ 30, 60, 30, 0]
     i=0
-    oa=g.angle
+    oa=(g.angle*-1)
     while i<len(x):#put the coords into a single class array to make it easier to transfer
         temp=coord()
         temp.x=x[i]
@@ -372,21 +372,21 @@ def task2():
             track(oa, acts[i].d)
         i+=1
     p=0
-    turn(g.angle-oa)#turn to original angle
+    turn(g.angle-oa*-1)#turn to original angle
     print("\n----------------Final----------------------\n")
     while True:#go to the starting point
         print("_________________________\n")
         if (abs(pos.x)<3) and (abs(pos.y)<3):
             break
-        print("Current Angle: ", (g.angle-oa+90)%360)
+        print("Current Angle: ", ((g.angle*-1)-oa+90)%360)
         final(oa)
         sleep(.1)
         p+=1
-    turn(g.angle-oa)#turn to original angle
+    turn(g.angle-oa*-1)#turn to original angle
 
 
 def task1():
-    oa=g.angle
+    oa=g.angle*-1
     d=[50,-30,30,-50]
     for n in d:
         if n<0:
@@ -400,6 +400,6 @@ def task1():
         print("------------------------------------ ", pos.y)
         final(oa)
         sleep(.1)
-    turn(g.angle-oa)#turn to original angle
+    turn(g.angle-oa*-1)#turn to original angle
         
 
