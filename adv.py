@@ -15,12 +15,15 @@
 # ---------------------------------------------------------------------
 
 
+
 #Initializing...
 from ev3dev2.motor import LargeMotor, MoveTank, OUTPUT_B, OUTPUT_A
 from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM
 from ev3dev2.sensor.lego import GyroSensor
 from ev3dev2.led import Leds
 from ev3dev2.sound import Sound
+from ev3dev2.display import Display
+from threading import Thread
 from time import sleep
 import math as m
 
@@ -29,6 +32,7 @@ led=Leds()
 tP=MoveTank(OUTPUT_A, OUTPUT_B)
 g=GyroSensor()
 mA=LargeMotor(OUTPUT_A)
+lcd = Display()
 
 
 
@@ -37,11 +41,29 @@ class coord():
     # Makes it easier to store coordinate values
     x=0
     y=0
+    same=[]#list of coords with same x and y
 
 class action():
     # Makes it easier to store comands
     turn=0
     d=0
+
+class lcdStuff():
+    #calculated info needed for displaying data to the lcd screen
+    #constants of screen
+    h=128
+    w=178
+    #------------
+    coords=[]
+    border=0
+    maxX=0#max x for list of data
+    maxY=0#max y for list of data
+    minX=0#min x for list of data
+    minY=0#min y for list of data
+    zeroX=89
+    zeroY=64
+    sx=1#scale x
+    sy=1#scale y
 
 #LEDS----------------------------------------------
     # Description:
@@ -93,7 +115,87 @@ def fade(t):#Fade from red to green to red
                 led.set_color('RIGHT', (1-p/100, p/100)) #Bright Red
             sleep(.01)
 
+#Displaying to ev3 screen ---------------------------------------------
+    # Description
+    #   width = 178px
+    #   height = 128px
+    #   fucntions for displaying info to the ev3 lcd screen
 
+style = 'helvB'
+lcdI=lcdStuff()
+
+def dispPos(c, size=24):#display the coords given to the function
+    lcd.clear()
+    temp="("+str(c.x)+", "+str(c.y)+")"
+    y=int((128-size)/2)#calculate the verticle center
+    x=50               #guess the horizontal center
+    lcd.text_pixels(temp, False, x, y, font=style+str(size))
+    lcd.update()
+
+def graphInit(coords, border=10):# Initializing info based on list of coords
+    border=abs(border)#ensures border input is positive
+    lcdI.border=border
+    lcdI.coords=coords
+    lcdI.minX=coords[0].x
+    lcdI.minY=coords[0].y
+    i=0
+    for c in coords:#set the min and max for data set
+        if c.y>lcdI.maxY:
+            lcdI.maxY=c.y
+        elif c.y<lcdI.minY:
+            lcdI.minY=c.y
+        if c.x>lcdI.maxX:
+            lcdI.maxX=c.x
+        elif c.x<lcdI.minX:
+            lcdI.minX=c.x
+        k=0
+        for u in coords:
+            if (c.y==u.y)and(c.x==u.x):
+                coords[i].same.append(k)
+            k+=1
+        i+=1
+    rx=abs(lcdI.maxX-lcdI.minX)#ranges
+    ry=abs(lcdI.maxY-lcdI.minY) 
+    lcdI.sx=(lcdI.w-2*border)/rx#scales
+    lcdI.sy=(lcdI.h-2*border)/ry
+    lcdI.zeroX=(0-lcdI.minX)*lcdI.sx+border
+    lcdI.zeroY=(0-lcdI.minY)*lcdI.sy+border
+
+
+def drawAxis(w=4):#Draw axis lines based on lcdI
+    lcd.line(False, x1=0, y1=128-lcdI.zeroY, x2=lcdI.w, y2=128-lcdI.zeroY, line_color='grey', width=w)#x-axis
+    lcd.line(False, x1=lcdI.zeroX, y1=0, x2=lcdI.zeroX, y2=lcdI.h, line_color='grey', width=w)#y-axis
+
+def graphicAction():
+    lcd.clear()
+    drawAxis()
+    for c in lcdI.coords:
+        lcd.circle(False, x=c.x*lcdI.sx+lcdI.zeroX, y=128-(c.y*lcdI.sy+lcdI.zeroY), radius=5, fill_color='white', outline_color='black')
+    lcd.circle(False, x=pos.x*lcdI.sx+lcdI.zeroX, y=128-(pos.y*lcdI.sy+lcdI.zeroY), radius=5, fill_color='black', outline_color='black')#pos
+    lcd.update()
+
+# threading for ... animation----------------------
+# dotThreadvar = True
+# dot=False
+
+# def dotAnim():
+#     while dotThreadvar:#using a var so if need to stop thread you can
+#         i=0
+#         while dot==True:
+#             lcd.clear()
+#             size=24
+#             temp="."*i
+#             y=int((128-size)/2)#calculate the verticle center
+#             x=70               #guess the horizontal center
+#             lcd.text_pixels(temp, False, x, y, font=style+str(size))
+#             lcd.update()
+#             i+=1
+#             if i>3:
+#                 i=0
+#             sleep(.25)
+
+# dotThread = Thread(target=dotAnim)
+# dotThread.start()#set dot=True to display . .. ... on ev3 lcd
 
 #Sensors----------------------------------------------------------------
     # Description:
@@ -196,6 +298,8 @@ def track(oa, d=40, s=50):
         i+=1
     print("Expected: ", d, "| Actual: ", dt)
     print("(",pos.x, ", ", pos.y,")")
+    
+    
     
 
 
@@ -378,15 +482,20 @@ def task2():
         i+=1
     acts=(coordToAct(coords))#generate the initial actions
     i=0
+    graphInit(coords)   #setup graph
     while i<len(acts):#carry out the actions
         print("_________________________\n")
         print("Turn: ", acts[i].turn, "Move: ", acts[i].d)
+        graphicAction()
+        sleep(1)#sleep .5 second to look at graph
         if acts[i].turn != 0:
             turn(acts[i].turn)
         if acts[i].d != 0:
             track(oa, acts[i].d)
         i+=1
     p=0
+    graphicAction()
+    sleep(1)#sleep .5 second to look at graph
     turn(g.angle-oa*-1)#turn to original angle
     print("\n----------------Final----------------------\n")
     while True:#go to the starting point
@@ -394,8 +503,9 @@ def task2():
         if (abs(pos.x)<3) and (abs(pos.y)<3):
             break
         print("Current Angle: ", ((g.angle*-1)-oa+90)%360)
-        final(oa)
-        sleep(.1)
+        final(oa)  
+        graphicAction()
+        sleep(1)#sleep .5 second to look at graph
         p+=1
     turn(g.angle-oa*-1)#turn to original angle
 
