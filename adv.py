@@ -240,7 +240,7 @@ def onMove(s=50):#move forward until eStop is used
 
 # Movement functions------------------------------------------------
      
-def turn(deg=180, oa=0, s=20, ac=10):#turn the robot an exact amount of degrees
+def turn(deg=180, oa=0, s=30, ac=10):#turn the robot an exact amount of degrees
     deg*=-1
     dire=deg/abs(deg)#direction
     if oa==0:
@@ -483,10 +483,10 @@ def task1():
 pos=coord()#make the position global
 
 # Enter the coords:
-x=[ -30,  0,30, 0]
+x=[ 30,  0,-30, 0]
 y=[ 30, 60, 30, 0]
 
-def task2():
+def task2faster():#pre-calculates actions and then does only thos actions till the end
     oa=(g.angle*-1)
     coords=xytocoords(x, y)
     acts=(coordToAct(coords))#generate the initial actions
@@ -517,17 +517,22 @@ def task2():
         sleep(1)#sleep 1 second to look at graph
         p+=1
     turn(g.angle-oa*-1)#turn to original angle
+    sleep(.5)
+    boff()
 
 
-def task2wp():# task 2 with point to point accuracy
+def task2():# task 2 with point to point accuracy
     oa=(g.angle*-1)
     coords=xytocoords(x, y)
     graphInit(coords)   #setup graph
     for c in coords:
-        while (abs(abs(pos.x)-abs(c.x))>3) and (abs(abs(pos.y)-abs(c.y))>3):
+        while (abs(abs(pos.x)-abs(c.x))>2) and (abs(abs(pos.y)-abs(c.y))>2):
             print("_________________________\n")
             print("Current Angle: ", ((g.angle*-1)-oa+90)%360)   
             point(oa, c)
             graphicAction()
-            sleep(1)#sleep 1 second to look at graph
-        turn(g.angle-oa*-1)#turn to original angle
+            sleep(1)# sleep 1 second to look at graph
+        if g.angle-oa*-1 !=0:
+            turn(g.angle-oa*-1)# turn to original angle
+    sleep(.5)
+    boff()
