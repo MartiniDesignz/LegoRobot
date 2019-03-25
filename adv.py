@@ -465,13 +465,13 @@ def coordToAct(coords):#generates the initial commands for the robot
 #Task 2--------------------------------------
 pos=coord()#make the position global
 
+# Enter the coords:
+x=[ -30,  0,30, 0]
+y=[ 30, 60, 30, 0]
+
 def task2():
     coords=[coord()]#initial coord should be 0, 0
     #coords for every thing after initial position
-    # x=[0,-30,30, 0]
-    # y=[40,40,40, 0]
-    x=[ -30,  0,30, 0]
-    y=[ 30, 60, 30, 0]
     i=0
     oa=(g.angle*-1)
     while i<len(x):#put the coords into a single class array to make it easier to transfer
@@ -510,10 +510,11 @@ def task2():
     turn(g.angle-oa*-1)#turn to original angle
 
 
+dist=[50,-30,30,-50]
+
 def task1():
     oa=g.angle*-1
-    d=[50,-30,30,-50]
-    for n in d:
+    for n in dist:
         if n<0:
             trackBack(oa, n)
         else:
