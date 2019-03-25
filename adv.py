@@ -174,28 +174,19 @@ def graphicAction():
     lcd.circle(False, x=pos.x*lcdI.sx+lcdI.zeroX, y=128-(pos.y*lcdI.sy+lcdI.zeroY), radius=5, fill_color='black', outline_color='black')#pos
     lcd.update()
 
-# threading for ... animation----------------------
-# dotThreadvar = True
-# dot=False
 
-# def dotAnim():
-#     while dotThreadvar:#using a var so if need to stop thread you can
-#         i=0
-#         while dot==True:
-#             lcd.clear()
-#             size=24
-#             temp="."*i
-#             y=int((128-size)/2)#calculate the verticle center
-#             x=70               #guess the horizontal center
-#             lcd.text_pixels(temp, False, x, y, font=style+str(size))
-#             lcd.update()
-#             i+=1
-#             if i>3:
-#                 i=0
-#             sleep(.25)
-
-# dotThread = Thread(target=dotAnim)
-# dotThread.start()#set dot=True to display . .. ... on ev3 lcd
+def dotAnim(t=5, speed=.25):# Display . .. ... animation on the screen
+        i=0
+        while i<(t/speed):
+            lcd.clear()
+            size=24#max font size
+            temp="."*(i%3)
+            y=int((128-size)/2)#calculate the verticle center
+            x=70               #guess the horizontal center
+            lcd.text_pixels(temp, False, x, y, font=style+str(size))
+            lcd.update()
+            sleep(speed)
+            i+=1
 
 #Sensors----------------------------------------------------------------
     # Description:
@@ -360,7 +351,6 @@ def final(oa):#Take the robot to its exact orgin (0, 0)
             desAng=270
     else:
         tAng=m.atan(abs((pos.y)/(pos.x)))*180/m.pi
-        print("Tangent: ", tAng)
         if pos.x>0:
             if pos.y<0:
                 desAng=180-tAng
@@ -370,9 +360,8 @@ def final(oa):#Take the robot to its exact orgin (0, 0)
             desAng=360-tAng
         else: 
             desAng=tAng
-    print("Desired Angle: ", desAng)
-    calc=0
     calc=((g.angle*-1)-oa+90)%360
+    print("Desired Angle: ", desAng)
     print("(",pos.x, ", ", pos.y,")")
     print(" Turn: ", desAng-calc, "Move: ", d)
     if (desAng-calc) != 0:
@@ -399,7 +388,6 @@ def point(oa, c):#Take the robot to its exact orgin
             desAng=270
     else:
         tAng=m.atan(abs((pos.y-c.y)/(pos.x-c.x)))*180/m.pi
-        print("Tangent: ", tAng)
         if pos.x>c.x:
             if pos.y<c.y:
                 desAng=180-tAng
@@ -409,9 +397,8 @@ def point(oa, c):#Take the robot to its exact orgin
             desAng=360-tAng
         else: 
             desAng=tAng
-    print("Desired Angle: ", desAng)
-    calc=0
     calc=((g.angle*-1)-oa+90)%360
+    print("Desired Angle: ", desAng)
     print("(",pos.x, ", ", pos.y,")")
     print(" Turn: ", desAng-calc, "Move: ", d)
     if (desAng-calc) != 0:
@@ -420,7 +407,7 @@ def point(oa, c):#Take the robot to its exact orgin
         track(oa, d)
 
 
-#pre-action calculations-----------------------------------------------
+#pre-action functions and calculations-----------------------------------------------
 def coordToAct(coords):#generates the initial commands for the robot
     acts=[action()]#first action does noting
     i=0
@@ -461,6 +448,36 @@ def coordToAct(coords):#generates the initial commands for the robot
         i+=1
     return acts
 
+def xytocoords(x, y):
+    tCors=[coord()]#initial coord should be 0, 0
+    i=0
+    while i<len(x):#put the coords into a single class array to make it easier to transfer
+        temp=coord()
+        temp.x=x[i]
+        temp.y=y[i]
+        tCors.append(temp)
+        i+=1
+    return tCors
+
+# Task 1-------------------------------------
+
+dist=[50,-30,30,-50] 
+
+def task1():
+    oa=g.angle*-1
+    for n in dist:
+        if n<0:
+            trackBack(oa, n)
+        else:
+            track(oa, n)
+        sleep(.1)
+    while True:#go to the starting point
+        if (abs(pos.x)<3) and (abs(pos.y)<3):
+            break
+        print("------------------------------------ ", pos.y)
+        final(oa)
+        sleep(.1)
+    turn(g.angle-oa*-1)#turn to original angle
 
 #Task 2--------------------------------------
 pos=coord()#make the position global
@@ -470,19 +487,11 @@ x=[ -30,  0,30, 0]
 y=[ 30, 60, 30, 0]
 
 def task2():
-    coords=[coord()]#initial coord should be 0, 0
-    #coords for every thing after initial position
-    i=0
     oa=(g.angle*-1)
-    while i<len(x):#put the coords into a single class array to make it easier to transfer
-        temp=coord()
-        temp.x=x[i]
-        temp.y=y[i]
-        coords.append(temp)
-        i+=1
+    coords=xytocoords(x, y)
     acts=(coordToAct(coords))#generate the initial actions
-    i=0
     graphInit(coords)   #setup graph
+    i=0
     while i<len(acts):#carry out the actions
         print("_________________________\n")
         print("Turn: ", acts[i].turn, "Move: ", acts[i].d)
@@ -505,26 +514,20 @@ def task2():
         print("Current Angle: ", ((g.angle*-1)-oa+90)%360)
         final(oa)  
         graphicAction()
-        sleep(1)#sleep .5 second to look at graph
+        sleep(1)#sleep 1 second to look at graph
         p+=1
     turn(g.angle-oa*-1)#turn to original angle
 
 
-dist=[50,-30,30,-50]
-
-def task1():
-    oa=g.angle*-1
-    for n in dist:
-        if n<0:
-            trackBack(oa, n)
-        else:
-            track(oa, n)
-        sleep(.1)
-    while True:#go to the starting point
-        if (abs(pos.x)<3) and (abs(pos.y)<3):
-            break
-        print("------------------------------------ ", pos.y)
-        final(oa)
-        sleep(.1)
-    turn(g.angle-oa*-1)#turn to original angle
-        
+def task2wp():# task 2 with point to point accuracy
+    oa=(g.angle*-1)
+    coords=xytocoords(x, y)
+    graphInit(coords)   #setup graph
+    for c in coords:
+        while (abs(abs(pos.x)-abs(c.x))>3) and (abs(abs(pos.y)-abs(c.y))>3):
+            print("_________________________\n")
+            print("Current Angle: ", ((g.angle*-1)-oa+90)%360)   
+            point(oa, c)
+            graphicAction()
+            sleep(1)#sleep 1 second to look at graph
+        turn(g.angle-oa*-1)#turn to original angle
