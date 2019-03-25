@@ -1,4 +1,21 @@
-#Initializing
+# LegoRobot Advanced Movement Control
+# 
+# Created by: Robby Martini
+#             MartiniDesignz.com
+#             martinidesignz@gmail.com
+#             github.com/MartiniDesignz
+#
+#
+# ---------------------------------------------------------------------
+# For use of ev3dev2 Library:
+#   Copyright (c) 2015 Ralph Hempel <rhempel@hempeldesigngroup.com>
+#   Copyright (c) 2015 Anton Vanhoucke <antonvh@gmail.com>
+#   Copyright (c) 2015 Denis Demidov <dennis.demidov@gmail.com>
+#   Copyright (c) 2015 Eric Pascual <eric@pobot.org>
+# ---------------------------------------------------------------------
+
+
+#Initializing...
 from ev3dev2.motor import LargeMotor, MoveTank, OUTPUT_B, OUTPUT_A
 from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM
 from ev3dev2.sensor.lego import GyroSensor
@@ -12,24 +29,25 @@ led=Leds()
 tP=MoveTank(OUTPUT_A, OUTPUT_B)
 g=GyroSensor()
 mA=LargeMotor(OUTPUT_A)
-#c=ColorSensor()
-#medMot = MediumMotor(OUTPUT_C)
+
 
 
 # classes----------------------------------------
 class coord():
+    # Makes it easier to store coordinate values
     x=0
     y=0
 
 class action():
+    # Makes it easier to store comands
     turn=0
     d=0
 
 #LEDS----------------------------------------------
-
     # Description:
     #   Basic functions to controls the leds
     #
+
 def loff():#Turn all LEDs off
     led.all_off() 
 
@@ -96,7 +114,7 @@ def rAng(t=10):#read the gyro for t(seconds)
     #   Basic functions for controlling motors
     #
 
-    # Calculating
+    # Functions for repedative Calculations
 def toDeg(d):#distance cm to degrees
     return d*360/17.78 #wheel circumference is 7in or 17.78cm
 
@@ -110,7 +128,7 @@ def bon():#turns break on
 def boff():#turns break off
     tP.on_for_degrees(0, 0, 0, brake=False, block=False)
 
-def move(x, s=50, cm=True):     #enter distance in cm | If enter inches type False
+def move(x, s=50, cm=True):     #enter distance in cm | If cm=False, distance should be entered in inches
     if cm:
         d=x
     else:
@@ -127,7 +145,6 @@ def onMove(s=50):#move forward until eStop is used
     tP.on(s, s)
 
 
-
 # Movement functions------------------------------------------------
      
 def turn(deg=180, oa=0, s=20, ac=10):#turn the robot an exact amount of degrees
@@ -135,8 +152,6 @@ def turn(deg=180, oa=0, s=20, ac=10):#turn the robot an exact amount of degrees
     dire=deg/abs(deg)#direction
     if oa==0:
         oa=g.angle #origninal angle
-    
-    
     ta=oa+deg#target angle
     onSpin(s*dire)
     while True:
@@ -402,4 +417,3 @@ def task1():
         sleep(.1)
     turn(g.angle-oa*-1)#turn to original angle
         
-
