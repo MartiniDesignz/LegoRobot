@@ -5,7 +5,6 @@
 #             martinidesignz@gmail.com
 #             github.com/MartiniDesignz
 #
-#
 # ---------------------------------------------------------------------
 # For use of ev3dev2 Library:
 #   Copyright (c) 2015 Ralph Hempel <rhempel@hempeldesigngroup.com>
@@ -13,8 +12,6 @@
 #   Copyright (c) 2015 Denis Demidov <dennis.demidov@gmail.com>
 #   Copyright (c) 2015 Eric Pascual <eric@pobot.org>
 # ---------------------------------------------------------------------
-
-
 
 #Initializing...
 from ev3dev2.motor import LargeMotor, MoveTank, OUTPUT_B, OUTPUT_A
@@ -34,13 +31,12 @@ g=GyroSensor()
 mA=LargeMotor(OUTPUT_A)
 lcd = Display()
 
-
-
 # classes----------------------------------------
 class coord():
     # Makes it easier to store coordinate values
     x=0
     y=0
+    pause=0
     same=[]#list of coords with same x and y
 
 class action():
@@ -68,7 +64,6 @@ class lcdStuff():
 #LEDS----------------------------------------------
     # Description:
     #   Basic functions to controls the leds
-    #
 
 def loff():#Turn all LEDs off
     led.all_off() 
@@ -99,7 +94,6 @@ def flash(t, s):#Flash LEDs for t (time in sec) at s(flashes per second)
             Rlr()
         sleep(s)
 
-
 def fade(t):#Fade from red to green to red
     i=0
     while i<t:
@@ -114,6 +108,7 @@ def fade(t):#Fade from red to green to red
                 led.set_color('LEFT', (1-p/100, p/100)) #Bright Red
                 led.set_color('RIGHT', (1-p/100, p/100)) #Bright Red
             sleep(.01)
+
 
 #Displaying to ev3 screen ---------------------------------------------
     # Description
@@ -161,7 +156,6 @@ def graphInit(coords, border=10):# Initializing info based on list of coords
     lcdI.zeroX=(0-lcdI.minX)*lcdI.sx+border
     lcdI.zeroY=(0-lcdI.minY)*lcdI.sy+border
 
-
 def drawAxis(w=4):#Draw axis lines based on lcdI
     lcd.line(False, x1=0, y1=128-lcdI.zeroY, x2=lcdI.w, y2=128-lcdI.zeroY, line_color='grey', width=w)#x-axis
     lcd.line(False, x1=lcdI.zeroX, y1=0, x2=lcdI.zeroX, y2=lcdI.h, line_color='grey', width=w)#y-axis
@@ -200,12 +194,10 @@ def rAng(t=10):#read the gyro for t(seconds)
         print(g.angle)
         sleep(.1)
 
-
 #motors------------------------------------------
 
     # Description:
     #   Basic functions for controlling motors
-    #
 
     # Functions for repedative Calculations
 def toDeg(d):#distance cm to degrees
@@ -269,7 +261,6 @@ def backUp(d=-20, s=50, ac=5, inc=10):#Backs the robot up
             i+=1
         p+=1 
 
-
 #complicated movements----------------------------------------------
 def track(oa, d=40, s=50):
     dt=0
@@ -289,9 +280,6 @@ def track(oa, d=40, s=50):
         i+=1
     print("Expected: ", d, "| Actual: ", dt)
     print("(",pos.x, ", ", pos.y,")")
-    
-    
-    
 
 
 def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and backs up accurately
@@ -332,44 +320,6 @@ def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and
 
 
 # Based on location movement----------------------------
-
-def final(oa):#Take the robot to its exact orgin (0, 0)
-    d=m.sqrt((pos.y)**2+(pos.x)**2)
-    desAng=0
-    if ((pos.y==0) and (pos.x==0)):
-            desAng=oa-(g.angle*-1)
-            d=0
-    elif pos.y==0:
-        if pos.x<0:
-            desAng=0
-        else:
-            desAng=180
-    elif pos.x==0:
-        if pos.y<0:
-            desAng=90
-        else:
-            desAng=270
-    else:
-        tAng=m.atan(abs((pos.y)/(pos.x)))*180/m.pi
-        if pos.x>0:
-            if pos.y<0:
-                desAng=180-tAng
-            else: 
-                desAng=180+tAng
-        elif pos.y>0:
-            desAng=360-tAng
-        else: 
-            desAng=tAng
-    calc=((g.angle*-1)-oa+90)%360
-    print("Desired Angle: ", desAng)
-    print("(",pos.x, ", ", pos.y,")")
-    print(" Turn: ", desAng-calc, "Move: ", d)
-    if (desAng-calc) != 0:
-        turn((desAng-calc))
-    if d != 0:
-        track(oa, d)
-    
-
 def point(oa, c):#Take the robot to its exact orgin
     d=m.sqrt((pos.y-c.y)**2+(pos.x-c.x)**2)
     desAng=0
@@ -408,45 +358,6 @@ def point(oa, c):#Take the robot to its exact orgin
 
 
 #pre-action functions and calculations-----------------------------------------------
-def coordToAct(coords):#generates the initial commands for the robot
-    acts=[action()]#first action does noting
-    i=0
-    calcAng=90#starts at 90 deg
-    while i<len(coords)-1:
-        cur=coords[i]
-        nxt=coords[i+1]
-        temp=action()
-        desAng=0
-        d=0
-        d=m.sqrt((cur.y-nxt.y)**2+(cur.x-nxt.x)**2)
-        if ((cur.y==nxt.y) and (cur.x==nxt.x)):
-            desAng=calcAng
-            d=0
-        elif cur.y==nxt.y:
-            if cur.x<nxt.x:
-                desAng=0
-            else:
-                desAng=180
-        elif cur.x==nxt.x:
-            if cur.y<nxt.y:
-                desAng=90
-            else:
-                desAng=270
-        else:
-            desAng=m.atan(abs((cur.y-nxt.y)/(cur.x-nxt.x)))*180/m.pi
-            if cur.x>nxt.x:
-                if cur.y<nxt.y:
-                    desAng=180-desAng
-                else: 
-                    desAng+=180
-            elif cur.y>nxt.y:
-                desAng=360-desAng
-        temp.turn=desAng-calcAng
-        temp.d=d
-        calcAng=desAng
-        acts.append(temp)
-        i+=1
-    return acts
 
 def xytocoords(x, y):
     tCors=[coord()]#initial coord should be 0, 0
@@ -455,6 +366,7 @@ def xytocoords(x, y):
         temp=coord()
         temp.x=x[i]
         temp.y=y[i]
+        temp.pause=pause[i]
         tCors.append(temp)
         i+=1
     return tCors
@@ -465,17 +377,20 @@ dist=[50,-30,30,-50]
 
 def task1():
     oa=g.angle*-1
+    finalPoint=coord()
+    finalPoint.x=0
     for n in dist:
         if n<0:
             trackBack(oa, n)
         else:
             track(oa, n)
+        finalPoint.y+=n
         sleep(.1)
     while True:#go to the starting point
-        if (abs(pos.x)<3) and (abs(pos.y)<3):
+        if (abs(abs(pos.x)-abs(finalPoint.x))>2) and (abs(abs(pos.y)-abs(finalPoint.y))>2):
             break
         print("------------------------------------ ", pos.y)
-        final(oa)
+        point(oa, finalPoint)
         sleep(.1)
     turn(g.angle-oa*-1)#turn to original angle
 
@@ -485,41 +400,7 @@ pos=coord()#make the position global
 # Enter the coords:
 x=[ 30,  0,-30, 0]
 y=[ 30, 60, 30, 0]
-
-def task2faster():#pre-calculates actions and then does only thos actions till the end
-    oa=(g.angle*-1)
-    coords=xytocoords(x, y)
-    acts=(coordToAct(coords))#generate the initial actions
-    graphInit(coords)   #setup graph
-    i=0
-    while i<len(acts):#carry out the actions
-        print("_________________________\n")
-        print("Turn: ", acts[i].turn, "Move: ", acts[i].d)
-        graphicAction()
-        sleep(1)#sleep .5 second to look at graph
-        if acts[i].turn != 0:
-            turn(acts[i].turn)
-        if acts[i].d != 0:
-            track(oa, acts[i].d)
-        i+=1
-    p=0
-    graphicAction()
-    sleep(1)#sleep .5 second to look at graph
-    turn(g.angle-oa*-1)#turn to original angle
-    print("\n----------------Final----------------------\n")
-    while True:#go to the starting point
-        print("_________________________\n")
-        if (abs(pos.x)<3) and (abs(pos.y)<3):
-            break
-        print("Current Angle: ", ((g.angle*-1)-oa+90)%360)
-        final(oa)  
-        graphicAction()
-        sleep(1)#sleep 1 second to look at graph
-        p+=1
-    turn(g.angle-oa*-1)#turn to original angle
-    sleep(.5)
-    boff()
-
+pause=[0, 5, 0, 0]
 
 def task2():# task 2 with point to point accuracy
     oa=(g.angle*-1)
@@ -534,5 +415,6 @@ def task2():# task 2 with point to point accuracy
             sleep(1)# sleep 1 second to look at graph
         if g.angle-oa*-1 !=0:
             turn(g.angle-oa*-1)# turn to original angle
+        sleep(c.pause)
     sleep(.5)
     boff()
