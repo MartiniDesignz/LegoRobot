@@ -286,7 +286,6 @@ def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and
     mDir=d/abs(d)#movement direction
     i=1
     p=0
-    print(mDir)
     dt=0
     size=0
     angAr=[]
@@ -298,7 +297,6 @@ def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and
         elif oa-ac>ang:
             tP.on_for_degrees(s, -s, inc, brake=False, block=True)
         else:
-            print(d)
             tP.on_for_degrees(s, s, toDeg(d/inc), brake=True, block=False)
             i+=1
             while mA.state[0]=='running':
@@ -388,9 +386,8 @@ def task1():
         finalPoint.y+=n
         sleep(.1)
     while True:#go to the starting point
-        if (abs(abs(pos.x)-abs(finalPoint.x))>2) and (abs(abs(pos.y)-abs(finalPoint.y))>2):
+        if (abs(abs(pos.x)-abs(finalPoint.x))<2) and (abs(abs(pos.y)-abs(finalPoint.y))<2):
             break
-        print("------------------------------------ ", pos.y)
         point(oa, finalPoint)
         sleep(.1)
     turn(g.angle-oa*-1)#turn to original angle
