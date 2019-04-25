@@ -28,7 +28,7 @@ snd=Sound()
 led=Leds()
 tP=MoveTank(OUTPUT_A, OUTPUT_B)
 g=GyroSensor()
-mA=LargeMotor(OUTPUT_A)
+mA=LargeMotor(OUTPUT_A  )
 lcd = Display()
 
 # classes----------------------------------------
@@ -127,7 +127,7 @@ def dispPos(c, size=24):#display the coords given to the function
     lcd.text_pixels(temp, False, x, y, font=style+str(size))
     lcd.update()
 
-def graphInit(coords, border=10):# Initializing info based on list of coords
+def graphInit(coords, border=20):# Initializing info based on list of coords
     border=abs(border)#ensures border input is positive
     lcdI.border=border
     lcdI.coords=coords
@@ -226,23 +226,41 @@ def eStop():#stop all motors
 def onSpin(s=50):#spin until eStop is used
     tP.on(-s, s)
 
-def onMove(s=50):#move forward until eStop is used
+def onMove(s=100):#move forward until eStop is used
     tP.on(s, s)
 
 
 # Movement functions------------------------------------------------
-     
-def turn(deg=180, oa=0, s=20, ac=10):#turn the robot an exact amount of degrees
-    deg*=-1
-    dire=deg/abs(deg)#direction
+
+
+def turn(deg=180, oa=0, s=30, ac=10, i=0):#turn the robot an exact amount of degrees
+    deg*=-1# Turning is setup in the opposite direction
     if oa==0:
-        oa=g.angle #origninal angle
-    ta=oa+deg#target angle
+        oa=g.angle
+    if deg>0:# determin direction of spin
+        dire=1
+    else:
+        dire=-1
+    ta=g.angle+deg
+    print("Original angle: ", oa, " Target: ", ta)
     onSpin(s*dire)
-    while True:
-        if g.angle<ta+ac and g.angle>ta-ac:
-            eStop()
-            break
+    ang=g.angle
+    if ang<ta:
+        while ang<ta-ac:
+            ang=g.angle
+    else:
+        while ang>ta+ac:
+            ang=g.angle  
+    eStop()
+    sleep(1)
+    ang=g.angle
+    if ang>ta+3 or ang<ta-3:
+        if i<3:
+            turn((ta-g.angle)*-1, s=40, ac=5, i=i+1)# Using recursion to increase accuracy of turning
+    print("Current angle: ", g.angle, " Target: ", ta)
+
+
+
 
 def backUp(d=-20, s=50, ac=5, inc=10):#Backs the robot up
     mDir=d/abs(d)#movement direction
@@ -280,6 +298,13 @@ def track(oa, d=40, s=50):
         i+=1
     print("Expected: ", d, "| Actual: ", dt)
     print("(",pos.x, ", ", pos.y,")")
+
+
+
+#put scan function here
+
+
+
 
 
 def trackBack(oa, d=-20, s=50, ac=5, inc=10):# fuction that tracks the robot and backs up accurately
@@ -372,7 +397,7 @@ def xytocoords(x, y):
 
 # Task 1-------------------------------------
 
-dist=[50,-30,30,-50] 
+dist=[90,-60,90,-60, 60, -90, 60, -90] 
 
 def task1():
     oa=g.angle*-1
@@ -396,9 +421,9 @@ def task1():
 pos=coord()#make the position global
 
 # Enter the coords:
-x=[ 0, 0,  20, 20, 0, 0]
-y=[ 0, 20, 20, 40, 40, 0]
-pause=[0, 0, 0, 5, 0, 0]
+x=[ 0, 0,  -73, -73, -73, 0]
+y=[ 0, 40, 40, 73, 0, 0]
+pause=[0, 0, 0, 20, 0, 0]
 
 def task2():# task 2 with point to point accuracy
     oa=(g.angle*-1)
@@ -418,3 +443,4 @@ def task2():# task 2 with point to point accuracy
         sleep(c.pause)
     sleep(.5)
     boff()
+
